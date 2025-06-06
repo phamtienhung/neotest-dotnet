@@ -3,6 +3,7 @@ local lib = require("neotest.lib")
 local Path = require("plenary.path")
 local async = require("neotest.async")
 local neotest_node_tree_utils = require("neotest-dotnet.utils.neotest-node-tree-utils")
+local path_utils = require("neotest-dotnet.utils.path-utils")
 
 local BuildSpecUtils = {}
 
@@ -28,6 +29,10 @@ end
 function BuildSpecUtils.create_single_spec(position, proj_root, filter_arg, dotnet_additional_args)
   local results_path = async.fn.tempname() .. ".trx"
   filter_arg = filter_arg or ""
+
+  -- Normalize paths for Windows
+  proj_root = path_utils.normalize_path(proj_root)
+  results_path = path_utils.normalize_path(results_path)
 
   local command = {
     "dotnet",
@@ -66,7 +71,6 @@ function BuildSpecUtils.create_single_spec(position, proj_root, filter_arg, dotn
   }
 end
 
----@param tree neotest.Tree
 function BuildSpecUtils.create_specs(tree, specs, dotnet_additional_args)
   local position = tree:data()
 
@@ -108,27 +112,9 @@ function BuildSpecUtils.create_specs(tree, specs, dotnet_additional_args)
     table.insert(specs, spec)
   elseif position.type == "file" then
     local proj_root = lib.files.match_root_pattern("*.csproj")(position.path)
-    local filter = {}
-    for _, child in tree:iter_nodes() do
-      local data = child:data()
-      if data.is_class then
-        if data.framework == "xunit" then
-          table.insert(filter, "FullyQualifiedName~" .. data.name)
-        elseif data.framework == "nunit" then
-          table.insert(filter, "Name~" .. data.name)
-        end
-      end
-    end
 
-    if #filter > 0 then
-      local spec = BuildSpecUtils.create_single_spec(
-        position,
-        proj_root,
-        '--filter "' .. table.concat(filter, "|") .. '"',
-        dotnet_additional_args
-      )
-      table.insert(specs, spec)
-    end
+    local spec = BuildSpecUtils.create_single_spec(position, proj_root, "", dotnet_additional_args)
+    table.insert(specs, spec)
   end
 
   return #specs < 0 and nil or specs

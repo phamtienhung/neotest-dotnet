@@ -1,4 +1,5 @@
 local M = {}
+local path_utils = require("neotest-dotnet.utils.path-utils")
 
 --- Assuming a position_id of the form "C:\path\to\file.cs::namespace::class::method",
 ---   with the rule that the first :: is the separator between the file path and the rest of the position_id,
@@ -16,6 +17,8 @@ function M.get_test_nodes_data(tree)
   local test_nodes = {}
   for _, node in tree:iter_nodes() do
     if node:data().type == "test" then
+      -- Normalize path for Windows
+      node:data().path = path_utils.normalize_path(node:data().path)
       table.insert(test_nodes, node)
     end
   end

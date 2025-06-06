@@ -1,6 +1,9 @@
 local logger = require("neotest.logging")
 local TrxUtils = require("neotest-dotnet.utils.trx-utils")
 local NodeTreeUtils = require("neotest-dotnet.utils.neotest-node-tree-utils")
+local path_utils = require("neotest-dotnet.utils.path-utils")
+local types = require("neotest.types")
+local Tree = types.Tree
 
 ---@type FrameworkUtils
 ---@diagnostic disable-next-line: missing-fields
@@ -92,6 +95,9 @@ M.build_position = function(file_path, source, captured_nodes)
   if match_type == "class" then
     match_type = "namespace"
   end
+
+  -- Normalize path for Windows
+  file_path = path_utils.normalize_path(file_path)
 
   local node = {
     type = match_type,
