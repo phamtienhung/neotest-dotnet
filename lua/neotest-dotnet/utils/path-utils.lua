@@ -5,7 +5,11 @@ local M = {}
 ---@return string The normalized path
 function M.normalize_path(path)
   if vim.fn.has('win32') == 1 then
-    return path:gsub('/', '\')
+    -- First replace all forward slashes with backslashes
+    path = path:gsub('/', '\\')
+    -- Then replace any double backslashes with single backslash
+    path = path:gsub('\\\\', '\\')
+    return path
   end
   return path
 end
