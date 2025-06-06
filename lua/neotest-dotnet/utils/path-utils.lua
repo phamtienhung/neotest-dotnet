@@ -5,7 +5,7 @@ local M = {}
 ---@return string The normalized path
 function M.normalize_path(path)
   if vim.fn.has('win32') == 1 then
-    return path:gsub('/', '\\')
+    return path:gsub('/', '\')
   end
   return path
 end
